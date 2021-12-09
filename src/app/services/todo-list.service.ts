@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { TodoItem } from '../interfaces/todo-item';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class TodoListService {
+import { StorageService } from './storage.service';
 
 
-  private todoList: TodoItem[] = [
+const todoListStorageKey = 'Todo_List';
+
+const defaultTodoList = [
     {title: 'install NodeJS'},
     {title: 'install Angular CLI'},
     {title: 'create new app'},
@@ -15,7 +13,17 @@ export class TodoListService {
     {title: 'develop app'},
     {title: 'deploy app'},
   ];
-  constructor() { }
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TodoListService {
+
+  todoList!: TodoItem[];
+
+  constructor(private storageService: StorageService) {
+      this.todoList = storageService.getData(todoListStorageKey) || defaultTodoList;
+   }
 
 
   getTodoList(): TodoItem[] {
@@ -23,6 +31,17 @@ export class TodoListService {
   }
 
   addItem(item: TodoItem): void {
-  this.todoList.push(item);
-}
+    this.todoList.push(item);
+    this.saveList();
+  }
+
+  updateItem(item: TodoItem, changes: any): void {
+    const index = this.todoList.indexOf(item);
+    this.todoList[index] = { ...item, ...changes };
+    this.saveList();
+  }
+
+  saveList() {
+    this.storageService.setData(todoListStorageKey, this.todoList);
+  }
 }
